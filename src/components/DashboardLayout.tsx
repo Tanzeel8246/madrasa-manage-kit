@@ -18,6 +18,7 @@ import { LanguageToggle } from "@/components/LanguageToggle";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
+import { Link, useLocation } from "react-router-dom";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -27,16 +28,17 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const { t } = useLanguage();
   const { signOut, user } = useAuth();
+  const location = useLocation();
 
   const menuItems = [
-    { icon: LayoutDashboard, label: t('dashboard'), href: '#dashboard' },
-    { icon: TrendingUp, label: t('income'), href: '#income' },
-    { icon: TrendingDown, label: t('expense'), href: '#expense' },
+    { icon: LayoutDashboard, label: t('dashboard'), href: '/dashboard' },
+    { icon: TrendingUp, label: t('income'), href: '/income' },
+    { icon: TrendingDown, label: t('expense'), href: '/expenses' },
     { icon: FileText, label: t('reports'), href: '#reports' },
     { icon: Package, label: t('stock'), href: '#stock' },
     { icon: Wallet, label: t('cashBank'), href: '#cash-bank' },
     { icon: HandHeart, label: t('loans'), href: '#loans' },
-    { icon: Users, label: t('donors'), href: '#donors' },
+    { icon: Users, label: t('donors'), href: '/donors' },
     { icon: Settings, label: t('settings'), href: '#settings' },
   ];
 
@@ -85,14 +87,19 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         >
           <nav className="flex flex-col gap-2 p-4">
             {menuItems.map((item) => (
-              <a
+              <Link
                 key={item.href}
-                href={item.href}
-                className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-secondary hover:text-secondary-foreground"
+                to={item.href}
+                className={cn(
+                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
+                  location.pathname === item.href
+                    ? "bg-primary text-primary-foreground"
+                    : "hover:bg-secondary hover:text-secondary-foreground"
+                )}
               >
                 <item.icon className="h-5 w-5" />
                 <span>{item.label}</span>
-              </a>
+              </Link>
             ))}
           </nav>
         </aside>

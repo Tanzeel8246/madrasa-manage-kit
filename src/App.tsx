@@ -9,6 +9,9 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
+import Income from "./pages/Income";
+import Expenses from "./pages/Expenses";
+import Donors from "./pages/Donors";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,6 +32,30 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <Dashboard />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/income" 
+                element={
+                  <ProtectedRoute>
+                    <Income />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/expenses" 
+                element={
+                  <ProtectedRoute>
+                    <Expenses />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/donors" 
+                element={
+                  <ProtectedRoute>
+                    <Donors />
                   </ProtectedRoute>
                 } 
               />
