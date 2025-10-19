@@ -10,11 +10,13 @@ import {
   Users,
   Settings,
   Menu,
-  X
+  X,
+  LogOut
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LanguageToggle } from "@/components/LanguageToggle";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 
 interface DashboardLayoutProps {
@@ -24,6 +26,7 @@ interface DashboardLayoutProps {
 export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const { t } = useLanguage();
+  const { signOut, user } = useAuth();
 
   const menuItems = [
     { icon: LayoutDashboard, label: t('dashboard'), href: '#dashboard' },
@@ -60,8 +63,14 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             </h1>
           </div>
 
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-2">
+            <span className="text-sm text-muted-foreground hidden md:inline">
+              {user?.email}
+            </span>
             <LanguageToggle />
+            <Button variant="ghost" size="icon" onClick={signOut}>
+              <LogOut className="h-4 w-4" />
+            </Button>
           </div>
         </div>
       </header>

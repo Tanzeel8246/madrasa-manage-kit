@@ -80,7 +80,7 @@ const Index = () => {
             <Button 
               size="lg" 
               className="text-lg h-14 px-8 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-[var(--shadow-islamic)]"
-              onClick={() => navigate('/dashboard')}
+              onClick={() => navigate('/auth')}
             >
               {t('language') === 'en' ? 'Get Started' : 'شروع کریں'}
               <ArrowRight className="ml-2 h-5 w-5" />
@@ -137,7 +137,7 @@ const Index = () => {
             size="lg"
             variant="secondary"
             className="text-lg h-14 px-8"
-            onClick={() => navigate('/dashboard')}
+            onClick={() => navigate('/auth')}
           >
             {t('language') === 'en' ? 'Start Free Trial' : 'مفت آزمائش شروع کریں'}
             <ArrowRight className="ml-2 h-5 w-5" />
