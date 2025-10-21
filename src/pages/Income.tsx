@@ -15,6 +15,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { toast } from '@/hooks/use-toast';
 import { Plus, Search, Filter, Download } from 'lucide-react';
 import { format } from 'date-fns';
+import { z } from 'zod';
 
 type IncomeCategory = 'zakat' | 'sadaqah' | 'fitrana' | 'qurbani' | 'donation' | 'other';
 type PaymentMethod = 'cash' | 'bank' | 'online';
@@ -28,6 +29,16 @@ interface IncomeForm {
   description: string;
   section_id?: string;
 }
+
+const incomeSchema = z.object({
+  amount: z.string().min(1, { message: "Amount is required" }).refine((val) => !isNaN(parseFloat(val)) && parseFloat(val) > 0, { message: "Amount must be greater than 0" }),
+  category: z.string().min(1, { message: "Category is required" }),
+  payment_method: z.string().min(1, { message: "Payment method is required" }),
+  donor_name: z.string().trim().max(100, { message: "Donor name must be less than 100 characters" }).optional(),
+  date: z.string().min(1, { message: "Date is required" }),
+  description: z.string().trim().max(500, { message: "Description must be less than 500 characters" }).optional(),
+  section_id: z.string().uuid().optional()
+});
 
 const Income = () => {
   const { t } = useLanguage();
@@ -126,7 +137,21 @@ const Income = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    createIncome.mutate(formData);
+    
+    try {
+      incomeSchema.parse(formData);
+      createIncome.mutate(formData);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        error.errors.forEach((err) => {
+          toast({
+            title: 'Validation Error',
+            description: err.message,
+            variant: 'destructive',
+          });
+        });
+      }
+    }
   };
 
   const getCategoryLabel = (category: string) => {

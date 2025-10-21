@@ -14,6 +14,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from '@/hooks/use-toast';
 import { Plus, Search, UserPlus, Mail, Phone } from 'lucide-react';
 import { format } from 'date-fns';
+import { z } from 'zod';
 
 interface DonorForm {
   name: string;
@@ -24,6 +25,16 @@ interface DonorForm {
   is_regular: boolean;
   notes: string;
 }
+
+const donorSchema = z.object({
+  name: z.string().trim().min(1, { message: "Name is required" }).max(100, { message: "Name must be less than 100 characters" }),
+  email: z.string().trim().email({ message: "Invalid email address" }).max(255, { message: "Email must be less than 255 characters" }).or(z.literal('')),
+  phone: z.string().trim().regex(/^(\+92|0)?[0-9]{10}$/, { message: "Invalid phone number format" }).or(z.literal('')),
+  cnic: z.string().trim().regex(/^[0-9]{5}-[0-9]{7}-[0-9]$/, { message: "CNIC must be in format: 12345-1234567-1" }).or(z.literal('')),
+  address: z.string().trim().max(500, { message: "Address must be less than 500 characters" }).optional(),
+  is_regular: z.boolean(),
+  notes: z.string().trim().max(1000, { message: "Notes must be less than 1000 characters" }).optional()
+});
 
 const Donors = () => {
   const { t } = useLanguage();
@@ -98,7 +109,21 @@ const Donors = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    createDonor.mutate(formData);
+    
+    try {
+      donorSchema.parse(formData);
+      createDonor.mutate(formData);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        error.errors.forEach((err) => {
+          toast({
+            title: 'Validation Error',
+            description: err.message,
+            variant: 'destructive',
+          });
+        });
+      }
+    }
   };
 
   return (

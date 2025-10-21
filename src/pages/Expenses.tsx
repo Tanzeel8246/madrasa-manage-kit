@@ -15,6 +15,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { toast } from '@/hooks/use-toast';
 import { Plus, Search, Filter, Download } from 'lucide-react';
 import { format } from 'date-fns';
+import { z } from 'zod';
 
 type ExpenseCategory = 'salaries' | 'food' | 'utilities' | 'books' | 'furniture' | 'stationery' | 'construction' | 'repairs' | 'events' | 'other';
 type PaymentMethod = 'cash' | 'bank' | 'online';
@@ -27,6 +28,15 @@ interface ExpenseForm {
   date: string;
   section_id?: string;
 }
+
+const expenseSchema = z.object({
+  amount: z.string().min(1, { message: "Amount is required" }).refine((val) => !isNaN(parseFloat(val)) && parseFloat(val) > 0, { message: "Amount must be greater than 0" }),
+  category: z.string().min(1, { message: "Category is required" }),
+  payment_method: z.string().min(1, { message: "Payment method is required" }),
+  description: z.string().trim().min(1, { message: "Description is required" }).max(500, { message: "Description must be less than 500 characters" }),
+  date: z.string().min(1, { message: "Date is required" }),
+  section_id: z.string().uuid().optional()
+});
 
 const Expenses = () => {
   const { t } = useLanguage();
@@ -123,7 +133,21 @@ const Expenses = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    createExpense.mutate(formData);
+    
+    try {
+      expenseSchema.parse(formData);
+      createExpense.mutate(formData);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        error.errors.forEach((err) => {
+          toast({
+            title: 'Validation Error',
+            description: err.message,
+            variant: 'destructive',
+          });
+        });
+      }
+    }
   };
 
   const getCategoryLabel = (category: string) => {
