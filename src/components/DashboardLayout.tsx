@@ -34,7 +34,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     { icon: LayoutDashboard, label: t('dashboard'), href: '/dashboard' },
     { icon: TrendingUp, label: t('income'), href: '/income' },
     { icon: TrendingDown, label: t('expense'), href: '/expenses' },
-    { icon: FileText, label: t('reports'), href: '#reports' },
+    { icon: FileText, label: t('reports'), href: '/reports' },
     { icon: Package, label: t('stock'), href: '#stock' },
     { icon: Wallet, label: t('cashBank'), href: '#cash-bank' },
     { icon: HandHeart, label: t('loans'), href: '#loans' },
