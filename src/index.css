@@ -122,5 +122,32 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    font-family: system-ui, -apple-system, sans-serif;
+  }
+  
+  /* Urdu text styling */
+  [lang="ur"], .urdu-text {
+    font-family: 'Noto Nastaliq Urdu', 'Noto Sans Arabic', serif;
+    direction: rtl;
+    text-align: right;
+  }
+  
+  /* Print styles for PDF */
+  @media print {
+    body * {
+      visibility: hidden;
+    }
+    #report-section, #report-section * {
+      visibility: visible;
+    }
+    #report-section {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+    }
+    .no-print {
+      display: none !important;
+    }
   }
 }

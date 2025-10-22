@@ -2,20 +2,41 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, Legend } from "recharts";
+import { useAuth } from "@/contexts/AuthContext";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { Download, FileText, Calendar, TrendingUp, TrendingDown, DollarSign } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format, startOfMonth, endOfMonth, startOfYear, endOfYear, subMonths } from "date-fns";
 
 const COLORS = ['hsl(var(--primary))', 'hsl(var(--destructive))', 'hsl(var(--accent))', 'hsl(var(--secondary))'];
+const ITEMS_PER_PAGE = 20;
 
 const Reports = () => {
   const { t } = useLanguage();
+  const { user } = useAuth();
   const [period, setPeriod] = useState('month');
   const [selectedSection, setSelectedSection] = useState('all');
+  const reportRef = useRef<HTMLDivElement>(null);
+
+  // Fetch user profile for madrasa name
+  const { data: profile } = useQuery({
+    queryKey: ['profile', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('madrasa_name, full_name')
+        .eq('id', user.id)
+        .maybeSingle();
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id,
+  });
 
   // Fetch sections
   const { data: sections } = useQuery({
@@ -56,7 +77,8 @@ const Reports = () => {
         .from('income_transactions')
         .select('*, sections(name)')
         .gte('date', format(start, 'yyyy-MM-dd'))
-        .lte('date', format(end, 'yyyy-MM-dd'));
+        .lte('date', format(end, 'yyyy-MM-dd'))
+        .order('date', { ascending: true });
 
       if (selectedSection !== 'all') {
         query = query.eq('section_id', selectedSection);
@@ -76,7 +98,8 @@ const Reports = () => {
         .from('expense_transactions')
         .select('*, sections(name)')
         .gte('date', format(start, 'yyyy-MM-dd'))
-        .lte('date', format(end, 'yyyy-MM-dd'));
+        .lte('date', format(end, 'yyyy-MM-dd'))
+        .order('date', { ascending: true });
 
       if (selectedSection !== 'all') {
         query = query.eq('section_id', selectedSection);
@@ -124,11 +147,14 @@ const Reports = () => {
     window.print();
   };
 
+  // Pagination logic
+  const totalPages = Math.ceil(Math.max((incomeData?.length || 0), (expenseData?.length || 0)) / ITEMS_PER_PAGE);
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        {/* Header - Hidden in print */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 no-print">
           <div>
             <h1 className="text-3xl font-bold">{t('reports')}</h1>
             <p className="text-muted-foreground">
@@ -145,8 +171,8 @@ const Reports = () => {
           </div>
         </div>
 
-        {/* Filters */}
-        <Card>
+        {/* Filters - Hidden in print */}
+        <Card className="no-print">
           <CardContent className="pt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -197,8 +223,8 @@ const Reports = () => {
           </CardContent>
         </Card>
 
-        {/* Summary Cards */}
-        <div className="grid gap-4 md:grid-cols-3">
+        {/* Summary Cards - Hidden in print */}
+        <div className="grid gap-4 md:grid-cols-3 no-print">
           <Card className="shadow-[var(--shadow-card)]">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">{t('totalIncome')}</CardTitle>
@@ -248,9 +274,8 @@ const Reports = () => {
           </Card>
         </div>
 
-        {/* Charts */}
-        <div className="grid gap-4 md:grid-cols-2">
-          {/* Income vs Expense Comparison */}
+        {/* Charts - Hidden in print */}
+        <div className="grid gap-4 md:grid-cols-2 no-print">
           <Card className="shadow-[var(--shadow-card)]">
             <CardHeader>
               <CardTitle>
@@ -276,7 +301,6 @@ const Reports = () => {
             </CardContent>
           </Card>
 
-          {/* Income by Category */}
           <Card className="shadow-[var(--shadow-card)]">
             <CardHeader>
               <CardTitle>
@@ -305,71 +329,181 @@ const Reports = () => {
               </ResponsiveContainer>
             </CardContent>
           </Card>
+        </div>
 
-          {/* Expense by Category */}
-          <Card className="shadow-[var(--shadow-card)]">
-            <CardHeader>
-              <CardTitle>
-                {t('language') === 'en' ? 'Expense by Category' : 'قسم کے لحاظ سے اخراجات'}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={expenseByCategoryData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={(entry) => entry.name}
-                    outerRadius={80}
-                    fill="hsl(var(--destructive))"
-                    dataKey="value"
-                  >
-                    {expenseByCategoryData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
+        {/* Printable Report Section */}
+        <div id="report-section" ref={reportRef} className="bg-white p-8 text-foreground">
+          {/* Report Header */}
+          <div className="text-center mb-8 border-b-2 border-primary pb-4">
+            <h1 className="text-3xl font-bold text-primary mb-2">
+              {profile?.madrasa_name || 'Madrasa Financial Management'}
+            </h1>
+            <div className="urdu-text text-2xl font-semibold mb-2">
+              مدرسہ کا نام: {profile?.madrasa_name || 'مدرسہ'}
+            </div>
+            <h2 className="text-xl font-semibold text-foreground">
+              {t('language') === 'en' ? 'Income & Expense Report' : 'آمدن و خرچ رپورٹ'}
+            </h2>
+            <p className="text-sm text-muted-foreground mt-2">
+              {t('language') === 'en' ? 'Period: ' : 'مدت: '}
+              {format(start, 'dd MMM yyyy')} - {format(end, 'dd MMM yyyy')}
+            </p>
+          </div>
 
-          {/* Category Breakdown Table */}
-          <Card className="shadow-[var(--shadow-card)]">
-            <CardHeader>
-              <CardTitle>
-                {t('language') === 'en' ? 'Category Breakdown' : 'قسم کی تفصیل'}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div>
-                  <h4 className="font-semibold text-sm mb-2 text-green-600">
-                    {t('language') === 'en' ? 'Income Categories' : 'آمدنی کی اقسام'}
-                  </h4>
-                  {incomeByCategoryData.map((cat, idx) => (
-                    <div key={idx} className="flex justify-between py-2 border-b last:border-0">
-                      <span className="text-sm">{cat.name}</span>
-                      <span className="font-semibold text-sm">Rs {cat.value.toLocaleString()}</span>
+          {/* Detailed Transaction Tables */}
+          {Array.from({ length: totalPages || 1 }).map((_, pageIndex) => {
+            const pageIncomeData = incomeData?.slice(
+              pageIndex * ITEMS_PER_PAGE,
+              (pageIndex + 1) * ITEMS_PER_PAGE
+            ) || [];
+            const pageExpenseData = expenseData?.slice(
+              pageIndex * ITEMS_PER_PAGE,
+              (pageIndex + 1) * ITEMS_PER_PAGE
+            ) || [];
+
+            const pageIncomeTotal = pageIncomeData.reduce((sum, item) => sum + Number(item.amount), 0);
+            const pageExpenseTotal = pageExpenseData.reduce((sum, item) => sum + Number(item.amount), 0);
+
+            const previousIncomeTotal = incomeData?.slice(0, pageIndex * ITEMS_PER_PAGE)
+              .reduce((sum, item) => sum + Number(item.amount), 0) || 0;
+            const previousExpenseTotal = expenseData?.slice(0, pageIndex * ITEMS_PER_PAGE)
+              .reduce((sum, item) => sum + Number(item.amount), 0) || 0;
+
+            return (
+              <div key={pageIndex} className="mb-12 page-break">
+                {pageIndex > 0 && (
+                  <div className="mb-4 p-4 bg-secondary/20 rounded">
+                    <h3 className="font-semibold mb-2">
+                      {t('language') === 'en' ? 'Carried Forward from Previous Page' : 'پچھلے صفحے سے آگے لایا گیا'}
+                    </h3>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>Income: Rs {previousIncomeTotal.toLocaleString()}</div>
+                      <div>Expense: Rs {previousExpenseTotal.toLocaleString()}</div>
                     </div>
-                  ))}
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                  {/* Income Table */}
+                  <div>
+                    <h3 className="text-lg font-semibold mb-3 text-green-600">
+                      {t('language') === 'en' ? 'Income Transactions' : 'آمدنی کی تفصیل'}
+                    </h3>
+                    <table className="w-full border-collapse text-sm">
+                      <thead>
+                        <tr className="bg-green-50">
+                          <th className="border border-border p-2 text-left">Date</th>
+                          <th className="border border-border p-2 text-left">Category</th>
+                          <th className="border border-border p-2 text-right">Amount (Rs)</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {pageIncomeData.map((item, idx) => (
+                          <tr key={item.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-secondary/10'}>
+                            <td className="border border-border p-2">{format(new Date(item.date), 'dd/MM/yyyy')}</td>
+                            <td className="border border-border p-2">{item.category}</td>
+                            <td className="border border-border p-2 text-right font-semibold">{Number(item.amount).toLocaleString()}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                      <tfoot>
+                        <tr className="bg-green-100 font-bold">
+                          <td colSpan={2} className="border border-border p-2">Page Total:</td>
+                          <td className="border border-border p-2 text-right">Rs {pageIncomeTotal.toLocaleString()}</td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+
+                  {/* Expense Table */}
+                  <div>
+                    <h3 className="text-lg font-semibold mb-3 text-destructive">
+                      {t('language') === 'en' ? 'Expense Transactions' : 'اخراجات کی تفصیل'}
+                    </h3>
+                    <table className="w-full border-collapse text-sm">
+                      <thead>
+                        <tr className="bg-red-50">
+                          <th className="border border-border p-2 text-left">Date</th>
+                          <th className="border border-border p-2 text-left">Category</th>
+                          <th className="border border-border p-2 text-right">Amount (Rs)</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {pageExpenseData.map((item, idx) => (
+                          <tr key={item.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-secondary/10'}>
+                            <td className="border border-border p-2">{format(new Date(item.date), 'dd/MM/yyyy')}</td>
+                            <td className="border border-border p-2">{item.category}</td>
+                            <td className="border border-border p-2 text-right font-semibold">{Number(item.amount).toLocaleString()}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                      <tfoot>
+                        <tr className="bg-red-100 font-bold">
+                          <td colSpan={2} className="border border-border p-2">Page Total:</td>
+                          <td className="border border-border p-2 text-right">Rs {pageExpenseTotal.toLocaleString()}</td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
                 </div>
-                <div>
-                  <h4 className="font-semibold text-sm mb-2 text-destructive">
-                    {t('language') === 'en' ? 'Expense Categories' : 'اخراجات کی اقسام'}
-                  </h4>
-                  {expenseByCategoryData.map((cat, idx) => (
-                    <div key={idx} className="flex justify-between py-2 border-b last:border-0">
-                      <span className="text-sm">{cat.name}</span>
-                      <span className="font-semibold text-sm">Rs {cat.value.toLocaleString()}</span>
+
+                {/* Page footer with running totals */}
+                <div className="mt-4 p-4 bg-secondary/30 rounded">
+                  <div className="grid grid-cols-3 gap-4 text-center font-semibold">
+                    <div>
+                      <div className="text-sm text-muted-foreground">Total Income (Up to Page {pageIndex + 1})</div>
+                      <div className="text-lg text-green-600">Rs {(previousIncomeTotal + pageIncomeTotal).toLocaleString()}</div>
                     </div>
-                  ))}
+                    <div>
+                      <div className="text-sm text-muted-foreground">Total Expense (Up to Page {pageIndex + 1})</div>
+                      <div className="text-lg text-destructive">Rs {(previousExpenseTotal + pageExpenseTotal).toLocaleString()}</div>
+                    </div>
+                    <div>
+                      <div className="text-sm text-muted-foreground">Running Balance</div>
+                      <div className={`text-lg ${(previousIncomeTotal + pageIncomeTotal - previousExpenseTotal - pageExpenseTotal) >= 0 ? 'text-primary' : 'text-destructive'}`}>
+                        Rs {((previousIncomeTotal + pageIncomeTotal) - (previousExpenseTotal + pageExpenseTotal)).toLocaleString()}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            );
+          })}
+
+          {/* Final Summary */}
+          <div className="mt-8 p-6 bg-primary/10 rounded-lg border-2 border-primary">
+            <h3 className="text-xl font-bold text-center mb-4">
+              {t('language') === 'en' ? 'Final Summary' : 'حتمی خلاصہ'}
+            </h3>
+            <div className="grid grid-cols-3 gap-4 text-center">
+              <div>
+                <div className="text-sm text-muted-foreground mb-1">Total Income</div>
+                <div className="text-2xl font-bold text-green-600">Rs {totalIncome.toLocaleString()}</div>
+              </div>
+              <div>
+                <div className="text-sm text-muted-foreground mb-1">Total Expense</div>
+                <div className="text-2xl font-bold text-destructive">Rs {totalExpense.toLocaleString()}</div>
+              </div>
+              <div>
+                <div className="text-sm text-muted-foreground mb-1">Final Balance</div>
+                <div className={`text-2xl font-bold ${balance >= 0 ? 'text-primary' : 'text-destructive'}`}>
+                  Rs {balance.toLocaleString()}
+                </div>
+                <div className="text-xs mt-1">
+                  {balance >= 0 
+                    ? (t('language') === 'en' ? 'Surplus' : 'بچت')
+                    : (t('language') === 'en' ? 'Deficit' : 'خسارہ')
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Report Footer */}
+          <div className="mt-8 pt-4 border-t border-border text-center text-sm text-muted-foreground">
+            <p>Generated on: {format(new Date(), 'dd MMMM yyyy, hh:mm a')}</p>
+            <p className="urdu-text mt-1">یہ رپورٹ خودکار طریقے سے تیار کی گئی ہے</p>
+          </div>
         </div>
       </div>
     </DashboardLayout>

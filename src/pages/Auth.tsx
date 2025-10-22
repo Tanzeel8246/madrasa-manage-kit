@@ -26,6 +26,7 @@ const Auth = () => {
   const [signupPassword, setSignupPassword] = useState('');
   const [signupFullName, setSignupFullName] = useState('');
   const [signupPhone, setSignupPhone] = useState('');
+  const [madrasaName, setMadrasaName] = useState('');
 
   // Redirect if already logged in
   if (user) {
@@ -54,7 +55,7 @@ const Auth = () => {
     e.preventDefault();
     setLoading(true);
 
-    const { error } = await signUp(signupEmail, signupPassword, signupFullName, signupPhone);
+    const { error } = await signUp(signupEmail, signupPassword, signupFullName, signupPhone, madrasaName);
 
     if (error) {
       toast({
@@ -138,6 +139,17 @@ const Auth = () => {
                     placeholder="Ahmad Ali"
                     value={signupFullName}
                     onChange={(e) => setSignupFullName(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="madrasa-name">Madrasa Name / مدرسہ کا نام</Label>
+                  <Input
+                    id="madrasa-name"
+                    type="text"
+                    placeholder="Jamia Masjid Al-Noor"
+                    value={madrasaName}
+                    onChange={(e) => setMadrasaName(e.target.value)}
                     required
                   />
                 </div>
