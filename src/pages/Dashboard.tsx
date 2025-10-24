@@ -5,25 +5,96 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { TrendingUp, TrendingDown, Wallet, Plus, FileText } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from "recharts";
-
-const monthlyData = [
-  { name: 'Jan', income: 450000, expense: 280000 },
-  { name: 'Feb', income: 520000, expense: 310000 },
-  { name: 'Mar', income: 480000, expense: 295000 },
-  { name: 'Apr', income: 580000, expense: 330000 },
-  { name: 'May', income: 620000, expense: 340000 },
-  { name: 'Jun', income: 550000, expense: 315000 },
-];
-
-const recentTransactions = [
-  { id: 1, type: 'income', category: 'Zakat', amount: 50000, donor: 'Ahmad Ali', date: '2024-10-15' },
-  { id: 2, type: 'expense', category: 'Salaries', amount: 85000, description: 'Teachers Salary', date: '2024-10-14' },
-  { id: 3, type: 'income', category: 'Sadaqah', amount: 25000, donor: 'Fatima Sheikh', date: '2024-10-13' },
-  { id: 4, type: 'expense', category: 'Utilities', amount: 12000, description: 'Electricity Bill', date: '2024-10-12' },
-];
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { format, startOfMonth, endOfMonth, subMonths } from "date-fns";
+import { useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
   const { t } = useLanguage();
+  const navigate = useNavigate();
+
+  // Fetch income transactions
+  const { data: incomeData } = useQuery({
+    queryKey: ['dashboard-income'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('income_transactions')
+        .select('*')
+        .order('date', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Fetch expense transactions
+  const { data: expenseData } = useQuery({
+    queryKey: ['dashboard-expense'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('expense_transactions')
+        .select('*')
+        .order('date', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Calculate totals
+  const totalIncome = incomeData?.reduce((sum, item) => sum + Number(item.amount), 0) || 0;
+  const totalExpense = expenseData?.reduce((sum, item) => sum + Number(item.amount), 0) || 0;
+  const balance = totalIncome - totalExpense;
+
+  // Get last 6 months data for charts
+  const getMonthlyData = () => {
+    const months = [];
+    for (let i = 5; i >= 0; i--) {
+      const date = subMonths(new Date(), i);
+      const monthStart = startOfMonth(date);
+      const monthEnd = endOfMonth(date);
+      
+      const monthIncome = incomeData?.filter(t => {
+        const tDate = new Date(t.date);
+        return tDate >= monthStart && tDate <= monthEnd;
+      }).reduce((sum, item) => sum + Number(item.amount), 0) || 0;
+
+      const monthExpense = expenseData?.filter(t => {
+        const tDate = new Date(t.date);
+        return tDate >= monthStart && tDate <= monthEnd;
+      }).reduce((sum, item) => sum + Number(item.amount), 0) || 0;
+
+      months.push({
+        name: format(date, 'MMM'),
+        income: monthIncome,
+        expense: monthExpense,
+      });
+    }
+    return months;
+  };
+
+  const monthlyData = getMonthlyData();
+
+  // Get recent transactions (mix of income and expense)
+  const recentTransactions = [
+    ...(incomeData?.slice(0, 2).map(t => ({
+      id: t.id,
+      type: 'income' as const,
+      category: t.category,
+      amount: Number(t.amount),
+      donor: t.donor_name,
+      description: undefined as string | undefined,
+      date: format(new Date(t.date), 'yyyy-MM-dd'),
+    })) || []),
+    ...(expenseData?.slice(0, 2).map(t => ({
+      id: t.id,
+      type: 'expense' as const,
+      category: t.category,
+      amount: Number(t.amount),
+      donor: undefined as string | undefined,
+      description: t.description,
+      date: format(new Date(t.date), 'yyyy-MM-dd'),
+    })) || []),
+  ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 4);
 
   return (
     <DashboardLayout>
@@ -32,38 +103,49 @@ const Dashboard = () => {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           <StatCard
             title={t('totalIncome')}
-            value="Rs 3,200,000"
+            value={`Rs ${totalIncome.toLocaleString()}`}
             icon={TrendingUp}
-            trend="+12.5%"
             variant="success"
           />
           <StatCard
             title={t('totalExpense')}
-            value="Rs 1,870,000"
+            value={`Rs ${totalExpense.toLocaleString()}`}
             icon={TrendingDown}
-            trend="+8.2%"
             variant="danger"
           />
           <StatCard
             title={t('balance')}
-            value="Rs 1,330,000"
+            value={`Rs ${balance.toLocaleString()}`}
             icon={Wallet}
-            trend="+18.7%"
-            variant="default"
+            variant={balance >= 0 ? "success" : "danger"}
           />
         </div>
 
         {/* Quick Actions */}
         <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
-          <Button size="lg" className="h-auto py-4 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 w-full">
+          <Button 
+            size="lg" 
+            className="h-auto py-4 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 w-full"
+            onClick={() => navigate('/income')}
+          >
             <Plus className="mr-2 h-5 w-5" />
             {t('addIncome')}
           </Button>
-          <Button size="lg" variant="outline" className="h-auto py-4 w-full">
+          <Button 
+            size="lg" 
+            variant="outline" 
+            className="h-auto py-4 w-full"
+            onClick={() => navigate('/expenses')}
+          >
             <Plus className="mr-2 h-5 w-5" />
             {t('addExpense')}
           </Button>
-          <Button size="lg" variant="outline" className="h-auto py-4 w-full sm:col-span-2 md:col-span-1">
+          <Button 
+            size="lg" 
+            variant="outline" 
+            className="h-auto py-4 w-full sm:col-span-2 md:col-span-1"
+            onClick={() => navigate('/reports')}
+          >
             <FileText className="mr-2 h-5 w-5" />
             {t('viewReports')}
           </Button>
