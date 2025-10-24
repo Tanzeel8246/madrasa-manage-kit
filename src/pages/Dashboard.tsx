@@ -54,28 +54,28 @@ const Dashboard = () => {
         </div>
 
         {/* Quick Actions */}
-        <div className="grid gap-4 md:grid-cols-3">
-          <Button size="lg" className="h-auto py-4 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70">
+        <div className="grid gap-3 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
+          <Button size="lg" className="h-auto py-4 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 w-full">
             <Plus className="mr-2 h-5 w-5" />
             {t('addIncome')}
           </Button>
-          <Button size="lg" variant="outline" className="h-auto py-4">
+          <Button size="lg" variant="outline" className="h-auto py-4 w-full">
             <Plus className="mr-2 h-5 w-5" />
             {t('addExpense')}
           </Button>
-          <Button size="lg" variant="outline" className="h-auto py-4">
+          <Button size="lg" variant="outline" className="h-auto py-4 w-full sm:col-span-2 md:col-span-1">
             <FileText className="mr-2 h-5 w-5" />
             {t('viewReports')}
           </Button>
         </div>
 
         {/* Charts */}
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
           <Card className="shadow-[var(--shadow-card)]">
             <CardHeader>
-              <CardTitle>{t('monthlyOverview')}</CardTitle>
+              <CardTitle className="text-base md:text-lg">{t('monthlyOverview')}</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-2 md:px-6">
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={monthlyData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -97,9 +97,9 @@ const Dashboard = () => {
 
           <Card className="shadow-[var(--shadow-card)]">
             <CardHeader>
-              <CardTitle>Trend Analysis</CardTitle>
+              <CardTitle className="text-base md:text-lg">Trend Analysis</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-2 md:px-6">
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={monthlyData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -123,32 +123,32 @@ const Dashboard = () => {
         {/* Recent Transactions */}
         <Card className="shadow-[var(--shadow-card)]">
           <CardHeader>
-            <CardTitle>{t('recentTransactions')}</CardTitle>
+            <CardTitle className="text-base md:text-lg">{t('recentTransactions')}</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <div className="space-y-3">
               {recentTransactions.map((transaction) => (
-                <div key={transaction.id} className="flex items-center justify-between p-4 rounded-lg border bg-card">
-                  <div className="flex items-center gap-4">
-                    <div className={`p-2 rounded-lg ${transaction.type === 'income' ? 'bg-green-500/10' : 'bg-destructive/10'}`}>
+                <div key={transaction.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 md:p-4 rounded-lg border bg-card">
+                  <div className="flex items-center gap-3 md:gap-4">
+                    <div className={`p-2 rounded-lg flex-shrink-0 ${transaction.type === 'income' ? 'bg-green-500/10' : 'bg-destructive/10'}`}>
                       {transaction.type === 'income' ? (
-                        <TrendingUp className="h-5 w-5 text-green-600" />
+                        <TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-green-600" />
                       ) : (
-                        <TrendingDown className="h-5 w-5 text-destructive" />
+                        <TrendingDown className="h-4 w-4 md:h-5 md:w-5 text-destructive" />
                       )}
                     </div>
-                    <div>
-                      <p className="font-medium">{transaction.category}</p>
-                      <p className="text-sm text-muted-foreground">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-sm md:text-base truncate">{transaction.category}</p>
+                      <p className="text-xs md:text-sm text-muted-foreground truncate">
                         {transaction.donor || transaction.description}
                       </p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className={`font-semibold ${transaction.type === 'income' ? 'text-green-600' : 'text-destructive'}`}>
+                  <div className="text-left sm:text-right flex-shrink-0 pl-10 sm:pl-0">
+                    <p className={`font-semibold text-sm md:text-base ${transaction.type === 'income' ? 'text-green-600' : 'text-destructive'}`}>
                       {transaction.type === 'income' ? '+' : '-'} Rs {transaction.amount.toLocaleString()}
                     </p>
-                    <p className="text-sm text-muted-foreground">{transaction.date}</p>
+                    <p className="text-xs md:text-sm text-muted-foreground">{transaction.date}</p>
                   </div>
                 </div>
               ))}

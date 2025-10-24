@@ -85,11 +85,12 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             sidebarOpen ? "translate-x-0" : "-translate-x-full"
           )}
         >
-          <nav className="flex flex-col gap-2 p-4">
+          <nav className="flex flex-col gap-2 p-4 overflow-y-auto h-full">
             {menuItems.map((item) => (
               <Link
                 key={item.href}
                 to={item.href}
+                onClick={() => setSidebarOpen(false)}
                 className={cn(
                   "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
                   location.pathname === item.href
@@ -104,8 +105,16 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           </nav>
         </aside>
 
+        {/* Backdrop for mobile */}
+        {sidebarOpen && (
+          <div 
+            className="fixed inset-0 z-30 bg-background/80 backdrop-blur-sm lg:hidden"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+
         {/* Main Content */}
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-4 md:p-6 lg:p-8 w-full min-w-0">
           {children}
         </main>
       </div>

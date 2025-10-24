@@ -172,14 +172,14 @@ const Expenses = () => {
     <DashboardLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold">{t('expense')}</h1>
-            <p className="text-muted-foreground">Track all expenses and payments</p>
+            <h1 className="text-2xl md:text-3xl font-bold">{t('expense')}</h1>
+            <p className="text-sm text-muted-foreground">Track all expenses and payments</p>
           </div>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="gap-2">
+              <Button className="gap-2 w-full sm:w-auto">
                 <Plus className="h-4 w-4" />
                 {t('addExpense')}
               </Button>
@@ -189,7 +189,7 @@ const Expenses = () => {
                 <DialogTitle>Add New Expense</DialogTitle>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="amount">Amount (Rs) *</Label>
                     <Input
@@ -226,7 +226,7 @@ const Expenses = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="payment_method">Payment Method *</Label>
                     <Select
@@ -300,7 +300,7 @@ const Expenses = () => {
         </div>
 
         {/* Summary Cards */}
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">Total Expenses</CardTitle>
@@ -333,7 +333,7 @@ const Expenses = () => {
         {/* Filters */}
         <Card>
           <CardContent className="pt-6">
-            <div className="flex gap-4">
+            <div className="flex flex-col sm:flex-row gap-3">
               <div className="flex-1">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -345,29 +345,31 @@ const Expenses = () => {
                   />
                 </div>
               </div>
-              <Select value={filterCategory} onValueChange={(value) => setFilterCategory(value)}>
-                <SelectTrigger className="w-[200px]">
-                  <Filter className="h-4 w-4 mr-2" />
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  <SelectItem value="salaries">Salaries</SelectItem>
-                  <SelectItem value="food">Food & Hostel</SelectItem>
-                  <SelectItem value="utilities">Utilities</SelectItem>
-                  <SelectItem value="books">Books</SelectItem>
-                  <SelectItem value="furniture">Furniture</SelectItem>
-                  <SelectItem value="stationery">Stationery</SelectItem>
-                  <SelectItem value="construction">Construction</SelectItem>
-                  <SelectItem value="repairs">Repairs</SelectItem>
-                  <SelectItem value="events">Events</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button variant="outline" className="gap-2">
-                <Download className="h-4 w-4" />
-                Export
-              </Button>
+              <div className="flex gap-2">
+                <Select value={filterCategory} onValueChange={(value) => setFilterCategory(value)}>
+                  <SelectTrigger className="w-full sm:w-[180px]">
+                    <Filter className="h-4 w-4 mr-2" />
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Categories</SelectItem>
+                    <SelectItem value="salaries">Salaries</SelectItem>
+                    <SelectItem value="food">Food & Hostel</SelectItem>
+                    <SelectItem value="utilities">Utilities</SelectItem>
+                    <SelectItem value="books">Books</SelectItem>
+                    <SelectItem value="furniture">Furniture</SelectItem>
+                    <SelectItem value="stationery">Stationery</SelectItem>
+                    <SelectItem value="construction">Construction</SelectItem>
+                    <SelectItem value="repairs">Repairs</SelectItem>
+                    <SelectItem value="events">Events</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button variant="outline" className="gap-2 flex-shrink-0">
+                  <Download className="h-4 w-4" />
+                  <span className="hidden sm:inline">Export</span>
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -375,10 +377,10 @@ const Expenses = () => {
         {/* Transactions Table */}
         <Card>
           <CardHeader>
-            <CardTitle>Expense Transactions</CardTitle>
+            <CardTitle className="text-base md:text-lg">Expense Transactions</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="rounded-md border">
+          <CardContent className="p-0 sm:p-6">
+            <div className="rounded-md border overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>

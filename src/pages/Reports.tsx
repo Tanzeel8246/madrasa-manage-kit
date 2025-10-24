@@ -154,19 +154,20 @@ const Reports = () => {
     <DashboardLayout>
       <div className="space-y-6">
         {/* Header - Hidden in print */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 no-print">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 no-print">
           <div>
-            <h1 className="text-3xl font-bold">{t('reports')}</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-2xl md:text-3xl font-bold">{t('reports')}</h1>
+            <p className="text-sm text-muted-foreground">
               {t('language') === 'en' 
                 ? 'View detailed financial reports and analytics'
                 : 'تفصیلی مالی رپورٹس اور تجزیات دیکھیں'}
             </p>
           </div>
-          <div className="flex gap-2">
-            <Button onClick={handleExportPDF} variant="outline">
+          <div className="flex gap-2 w-full sm:w-auto">
+            <Button onClick={handleExportPDF} variant="outline" className="w-full sm:w-auto">
               <Download className="mr-2 h-4 w-4" />
-              {t('language') === 'en' ? 'Export PDF' : 'PDF ڈاؤن لوڈ'}
+              <span className="hidden xs:inline">{t('language') === 'en' ? 'Export PDF' : 'PDF ڈاؤن لوڈ'}</span>
+              <span className="xs:hidden">PDF</span>
             </Button>
           </div>
         </div>
@@ -224,7 +225,7 @@ const Reports = () => {
         </Card>
 
         {/* Summary Cards - Hidden in print */}
-        <div className="grid gap-4 md:grid-cols-3 no-print">
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 no-print">
           <Card className="shadow-[var(--shadow-card)]">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">{t('totalIncome')}</CardTitle>
@@ -275,14 +276,14 @@ const Reports = () => {
         </div>
 
         {/* Charts - Hidden in print */}
-        <div className="grid gap-4 md:grid-cols-2 no-print">
+        <div className="grid gap-4 grid-cols-1 lg:grid-cols-2 no-print">
           <Card className="shadow-[var(--shadow-card)]">
             <CardHeader>
-              <CardTitle>
+              <CardTitle className="text-base md:text-lg">
                 {t('language') === 'en' ? 'Income vs Expense' : 'آمدنی بمقابلہ اخراجات'}
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-2 md:px-6">
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={comparisonData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -303,11 +304,11 @@ const Reports = () => {
 
           <Card className="shadow-[var(--shadow-card)]">
             <CardHeader>
-              <CardTitle>
+              <CardTitle className="text-base md:text-lg">
                 {t('language') === 'en' ? 'Income by Category' : 'قسم کے لحاظ سے آمدنی'}
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-2 md:px-6">
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
                   <Pie
@@ -332,19 +333,19 @@ const Reports = () => {
         </div>
 
         {/* Printable Report Section */}
-        <div id="report-section" ref={reportRef} className="bg-white p-8 text-foreground">
+        <div id="report-section" ref={reportRef} className="bg-white p-4 md:p-8 text-foreground">
           {/* Report Header */}
-          <div className="text-center mb-8 border-b-2 border-primary pb-4">
-            <h1 className="text-3xl font-bold text-primary mb-2">
+          <div className="text-center mb-6 md:mb-8 border-b-2 border-primary pb-4">
+            <h1 className="text-xl md:text-3xl font-bold text-primary mb-2">
               {profile?.madrasa_name || 'Madrasa Financial Management'}
             </h1>
-            <div className="urdu-text text-2xl font-semibold mb-2">
+            <div className="urdu-text text-lg md:text-2xl font-semibold mb-2">
               مدرسہ کا نام: {profile?.madrasa_name || 'مدرسہ'}
             </div>
-            <h2 className="text-xl font-semibold text-foreground">
+            <h2 className="text-base md:text-xl font-semibold text-foreground">
               {t('language') === 'en' ? 'Income & Expense Report' : 'آمدن و خرچ رپورٹ'}
             </h2>
-            <p className="text-sm text-muted-foreground mt-2">
+            <p className="text-xs md:text-sm text-muted-foreground mt-2">
               {t('language') === 'en' ? 'Period: ' : 'مدت: '}
               {format(start, 'dd MMM yyyy')} - {format(end, 'dd MMM yyyy')}
             </p>

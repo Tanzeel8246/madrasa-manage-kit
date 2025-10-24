@@ -172,14 +172,14 @@ const Income = () => {
     <DashboardLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold">{t('income')}</h1>
-            <p className="text-muted-foreground">Manage all income and donations</p>
+            <h1 className="text-2xl md:text-3xl font-bold">{t('income')}</h1>
+            <p className="text-sm text-muted-foreground">Manage all income and donations</p>
           </div>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="gap-2">
+              <Button className="gap-2 w-full sm:w-auto">
                 <Plus className="h-4 w-4" />
                 {t('addIncome')}
               </Button>
@@ -189,7 +189,7 @@ const Income = () => {
                 <DialogTitle>Add New Income</DialogTitle>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="amount">Amount (Rs) *</Label>
                     <Input
@@ -222,7 +222,7 @@ const Income = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="payment_method">Payment Method *</Label>
                     <Select
@@ -305,7 +305,7 @@ const Income = () => {
         </div>
 
         {/* Summary Cards */}
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">Total Income</CardTitle>
@@ -338,7 +338,7 @@ const Income = () => {
         {/* Filters */}
         <Card>
           <CardContent className="pt-6">
-            <div className="flex gap-4">
+            <div className="flex flex-col sm:flex-row gap-3">
               <div className="flex-1">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -350,25 +350,27 @@ const Income = () => {
                   />
                 </div>
               </div>
-              <Select value={filterCategory} onValueChange={(value) => setFilterCategory(value)}>
-                <SelectTrigger className="w-[200px]">
-                  <Filter className="h-4 w-4 mr-2" />
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  <SelectItem value="zakat">Zakat</SelectItem>
-                  <SelectItem value="sadaqah">Sadaqah</SelectItem>
-                  <SelectItem value="fitrana">Fitrana</SelectItem>
-                  <SelectItem value="qurbani">Qurbani</SelectItem>
-                  <SelectItem value="donation">Donation</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button variant="outline" className="gap-2">
-                <Download className="h-4 w-4" />
-                Export
-              </Button>
+              <div className="flex gap-2">
+                <Select value={filterCategory} onValueChange={(value) => setFilterCategory(value)}>
+                  <SelectTrigger className="w-full sm:w-[180px]">
+                    <Filter className="h-4 w-4 mr-2" />
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Categories</SelectItem>
+                    <SelectItem value="zakat">Zakat</SelectItem>
+                    <SelectItem value="sadaqah">Sadaqah</SelectItem>
+                    <SelectItem value="fitrana">Fitrana</SelectItem>
+                    <SelectItem value="qurbani">Qurbani</SelectItem>
+                    <SelectItem value="donation">Donation</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button variant="outline" className="gap-2 flex-shrink-0">
+                  <Download className="h-4 w-4" />
+                  <span className="hidden sm:inline">Export</span>
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -376,10 +378,10 @@ const Income = () => {
         {/* Transactions Table */}
         <Card>
           <CardHeader>
-            <CardTitle>Income Transactions</CardTitle>
+            <CardTitle className="text-base md:text-lg">Income Transactions</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="rounded-md border">
+          <CardContent className="p-0 sm:p-6">
+            <div className="rounded-md border overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
